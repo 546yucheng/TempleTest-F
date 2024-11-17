@@ -82,39 +82,45 @@ export class OrderComponent implements OnInit {
     // 呼叫服務提交訂單
     this.orderService.placeOrder(orderData).subscribe(
       (response) => {
-        //   console.log('訂單提交成功', response);
-        //   // 成功提交後清空購物車
-        //   this.orderService.clearCart(this.userId).subscribe(
-        //     () => console.log("購物車已清空"),
-        //     (error) => console.error("清空購物車時發生錯誤", error)
-        //   );
-        //   // 跳轉至訂單完成頁，並帶上訂單編號
-        //   this.router.navigate(['/ordercomplete', response.orderId]);
-        // },
-        // (error) => {
-        //   console.error('訂單提交失敗', error);
-        //}
         console.log('訂單提交成功', response);
+
+        // 確認 response 存在且包含 orderId、info、amount、currency
+        if (response?.orderId) {
+          localStorage.setItem('orderId', response.orderId.toString());
+        } else {
+          console.error('orderId is undefined or null');
+        }
+
+        if (response?.info?.amount) {
+          localStorage.setItem('amount', response.info.amount.toString());
+        } else {
+          console.error('amount is undefined or null');
+        }
+
+        if (response?.info?.currency) {
+          localStorage.setItem('currency', response.info.currency);
+        } else {
+          console.error('currency is undefined or null');
+        }
+
         // 提交訂單後清空購物車
         this.orderService.clearCart(this.userId).subscribe(
           () => {
             console.log("購物車已清空");
-            // 跳轉至訂單完成頁，並帶上訂單編號
-            // this.router.navigate(['/ordercomplete', response.orderId]).then(() => {
-            //   // 刷新頁面
-            //   window.location.reload();
-            // });
           },
           (error) => {
             console.error("清空購物車時發生錯誤", error);
           }
         );
+
         // 跳轉至訂單完成頁，並帶上訂單編號
-        console.log(response.paymentUrl);
-        console.log(response["paymentUrl"]);
-        const redirectUrl = response.info.paymentUrl.web;
-        console.log(redirectUrl);
-        window.location.href = redirectUrl;
+        if (response?.info?.paymentUrl?.web) {
+          const redirectUrl = response.info.paymentUrl.web;
+          console.log('Redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+        } else {
+          console.error('paymentUrl is undefined or null');
+        }
       },
       (error) => {
         console.error('訂單提交失敗', error);
